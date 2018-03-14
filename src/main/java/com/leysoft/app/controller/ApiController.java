@@ -6,6 +6,10 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,12 +52,16 @@ public class ApiController {
 	}
 	
 	@GetMapping(value = {"/autor/{id}"})
-	public ResponseEntity<Autor> detailAutor(@PathVariable("id") Long id) {
+	public ResponseEntity<Resource<Autor>> detailAutor(@PathVariable("id") Long id) {
 		Autor autor = autorService.findById(id);
 		if(autor == null) {
 			throw new NotFoundException("id - " + id);
 		}
-		return new ResponseEntity<Autor>(autor, HttpStatus.OK);
+		Resource<Autor> resource = new Resource<Autor>(autor);
+		ControllerLinkBuilder link = linkTo(methodOn(this.getClass()).listAutor());
+		resource.add(link.withRel("all"));
+		
+		return new ResponseEntity<Resource<Autor>>(resource, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = {"/autor"})
