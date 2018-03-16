@@ -65,16 +65,13 @@ public class ApiAutorController {
 	@ApiOperation(value = "get-autor", nickname = "get-autor")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<Resource<Autor>> detail(@PathVariable("id") Long id) {
+	public ResponseEntity<AutorResource> detail(@PathVariable("id") Long id) {
 		Autor autor = autorService.findById(id);
 		if(autor == null) {
 			throw new NotFoundException("id - " + id);
 		}
-		Resource<Autor> resource = new Resource<Autor>(autor);
-		ControllerLinkBuilder link = linkTo(methodOn(this.getClass()).list());
-		resource.add(link.withRel("all"));
-		
-		return new ResponseEntity<Resource<Autor>>(resource, HttpStatus.OK);
+		AutorResource resource = assembler.toResource(autor);
+		return new ResponseEntity<AutorResource>(resource, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = {"/autor"})
