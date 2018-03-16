@@ -6,10 +6,6 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,96 +14,48 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.leysoft.app.entity.Autor;
 import com.leysoft.app.entity.Libro;
 import com.leysoft.app.exception.NotFoundException;
-import com.leysoft.app.service.inter.AutorService;
 import com.leysoft.app.service.inter.LibroService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
-@RequestMapping(value = {"/api"})
+@Api
 @RestController
-public class ApiController {
+public class ApiLibroController {
 	
 	@Autowired
 	private LibroService libroService;
 	
-	@Autowired
-	private AutorService autorService;
-	
-	@GetMapping(value = {"/autor"})
-	public ResponseEntity<List<Autor>> listAutor() {
-		return new ResponseEntity<List<Autor>>(autorService.findAll(), HttpStatus.OK);
-	}
-	
-	@GetMapping(value = {"/autor/search"})
-	public ResponseEntity<List<Autor>> searchAutor(@RequestParam("nombre") String nombre) {
-		return new ResponseEntity<List<Autor>>(autorService.findByNombreContainingIgnoreCase(nombre), HttpStatus.OK);
-	}
-	
-	@GetMapping(value = {"/autor/{id}"})
-	public ResponseEntity<Resource<Autor>> detailAutor(@PathVariable("id") Long id) {
-		Autor autor = autorService.findById(id);
-		if(autor == null) {
-			throw new NotFoundException("id - " + id);
-		}
-		Resource<Autor> resource = new Resource<Autor>(autor);
-		ControllerLinkBuilder link = linkTo(methodOn(this.getClass()).listAutor());
-		resource.add(link.withRel("all"));
-		
-		return new ResponseEntity<Resource<Autor>>(resource, HttpStatus.OK);
-	}
-	
-	@PostMapping(value = {"/autor"})
-	public ResponseEntity<Void> createAutor(@Valid @RequestBody Autor autor) {
-		Autor currentAutor = autorService.save(autor);
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-				.path("/{id}").buildAndExpand(currentAutor.getId()).toUri();
-		return ResponseEntity.created(location).build();
-	}
-	
-	@PutMapping(value = {"/autor/{id}"})
-	public ResponseEntity<Void> updateAutor(@Valid @RequestBody Autor autor, @PathVariable("id") Long id) {
-		Autor currentAutor = autorService.findById(id);
-		if(currentAutor == null) {
-			throw new NotFoundException("id - " + id);
-		}
-		currentAutor.setNombre(autor.getNombre());
-		currentAutor.setLibros(autor.getLibros());
-		autorService.update(currentAutor);
-		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-				.path("/{id}").buildAndExpand(currentAutor.getId()).toUri();
-		return ResponseEntity.created(location).build();
-	}
-
-	@ResponseStatus(value = HttpStatus.NO_CONTENT)
-	@DeleteMapping(value = {"/autor/{id}"})
-	public void deleteAutor(@PathVariable("id") Long id) {
-		Autor autor = autorService.findById(id);
-		if(autor == null) {
-			throw new NotFoundException("id - " + id);
-		}
-		autorService.delete(id);
-	}
-	
 	@GetMapping(value = {"/libro"})
-	public ResponseEntity<List<Libro>> listLibro() {
+	@ApiOperation(value = "get-libros", nickname = "get-libros")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<List<Libro>> list() {
 		return new ResponseEntity<List<Libro>>(libroService.findAll(), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/libro/search"})
-	public ResponseEntity<List<Libro>> searchLibro(@RequestParam("titulo") String titulo) {
+	@ApiOperation(value = "search-libros", nickname = "search-libros")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<List<Libro>> search(@RequestParam("titulo") String titulo) {
 		return new ResponseEntity<List<Libro>>(libroService.findByTituloContainingIgnoreCase(titulo), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/libro/{id}"})
-	public ResponseEntity<Libro> detailLibro(@PathVariable("id") Long id) {
+	@ApiOperation(value = "get-libro", nickname = "get-libro")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<Libro> detail(@PathVariable("id") Long id) {
 		Libro libro = libroService.findById(id);
 		if(libro == null) {
 			throw new NotFoundException("id - " + id);
@@ -116,15 +64,21 @@ public class ApiController {
 	}
 	
 	@PostMapping(value = {"/libro"})
-	public ResponseEntity<Void> createLibro(@Valid @RequestBody Libro libro) {
+	@ApiOperation(value = "save-libro", nickname = "save-libro")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<Void> create(@Valid @RequestBody Libro libro) {
 		Libro currentLibro = libroService.save(libro);
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}").buildAndExpand(currentLibro.getId()).toUri();
 		return ResponseEntity.created(location).build();
 	}
 	
+	@ApiOperation(value = "update-libro", nickname = "update-libro")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
 	@PutMapping(value = {"/libro/{id}"})
-	public ResponseEntity<Void> updateLibro(@Valid @RequestBody Libro libro, @PathVariable("id") Long id) {
+	public ResponseEntity<Void> update(@Valid @RequestBody Libro libro, @PathVariable("id") Long id) {
 		Libro currentLibro = libroService.findById(id);
 		if(currentLibro == null) {
 			throw new NotFoundException("id - " + id);
@@ -140,7 +94,10 @@ public class ApiController {
 	
 	@ResponseStatus(value = HttpStatus.NO_CONTENT)
 	@DeleteMapping(value = {"/libro/{id}"})
-	public void deleteLibro(@PathVariable("id") Long id) {
+	@ApiOperation(value = "delete-libro", nickname = "delete-libro")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
+	public void delete(@PathVariable("id") Long id) {
 		Libro libro = libroService.findById(id);
 		if(libro == null) {
 			throw new NotFoundException("id - " + id);
