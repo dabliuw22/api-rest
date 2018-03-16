@@ -24,8 +24,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.leysoft.app.assembler.AutorResourceAssembler;
 import com.leysoft.app.entity.Autor;
 import com.leysoft.app.exception.NotFoundException;
+import com.leysoft.app.resource.AutorResource;
 import com.leysoft.app.service.inter.AutorService;
 
 import io.swagger.annotations.Api;
@@ -40,20 +42,23 @@ public class ApiAutorController {
 	@Autowired
 	private AutorService autorService;
 	
+	@Autowired
+	private AutorResourceAssembler assembler;
+	
 	@GetMapping(value = {"/autor"})
 	@ApiOperation(value = "get-autores", nickname = "get-autores")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<List<Autor>> list() {
-		return new ResponseEntity<List<Autor>>(autorService.findAll(), HttpStatus.OK);
+	public ResponseEntity<List<AutorResource>> list() {
+		return new ResponseEntity<List<AutorResource>>(assembler.toResources(autorService.findAll()), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/autor/search"})
 	@ApiOperation(value = "search-autores", nickname = "search-autores")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<List<Autor>> search(@RequestParam("nombre") String nombre) {
-		return new ResponseEntity<List<Autor>>(autorService.findByNombreContainingIgnoreCase(nombre), HttpStatus.OK);
+	public ResponseEntity<List<AutorResource>> search(@RequestParam("nombre") String nombre) {
+		return new ResponseEntity<List<AutorResource>>(assembler.toResources(autorService.findByNombreContainingIgnoreCase(nombre)), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/autor/{id}"})
