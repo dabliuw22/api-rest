@@ -1,0 +1,115 @@
+package com.leysoft.app.controller;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.net.URI;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.leysoft.app.entity.Autor;
+import com.leysoft.app.exception.NotFoundException;
+import com.leysoft.app.service.inter.AutorService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+
+@Api
+@RestController
+public class ApiAutorController {
+	
+	@Autowired
+	private AutorService autorService;
+	
+	@GetMapping(value = {"/autor"})
+	@ApiOperation(value = "get-autores", nickname = "get-autores")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<List<Autor>> list() {
+		return new ResponseEntity<List<Autor>>(autorService.findAll(), HttpStatus.OK);
+	}
+	
+	@GetMapping(value = {"/autor/search"})
+	@ApiOperation(value = "search-autores", nickname = "search-autores")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<List<Autor>> search(@RequestParam("nombre") String nombre) {
+		return new ResponseEntity<List<Autor>>(autorService.findByNombreContainingIgnoreCase(nombre), HttpStatus.OK);
+	}
+	
+	@GetMapping(value = {"/autor/{id}"})
+	@ApiOperation(value = "get-autor", nickname = "get-autor")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<Resource<Autor>> detail(@PathVariable("id") Long id) {
+		Autor autor = autorService.findById(id);
+		if(autor == null) {
+			throw new NotFoundException("id - " + id);
+		}
+		Resource<Autor> resource = new Resource<Autor>(autor);
+		ControllerLinkBuilder link = linkTo(methodOn(this.getClass()).list());
+		resource.add(link.withRel("all"));
+		
+		return new ResponseEntity<Resource<Autor>>(resource, HttpStatus.OK);
+	}
+	
+	@PostMapping(value = {"/autor"})
+	@ApiOperation(value = "save-autor", nickname = "save-autor")
+	@ApiResponses(value = {@ApiResponse(code = 201, message = "Created"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<Void> create(@Valid @RequestBody Autor autor) {
+		Autor currentAutor = autorService.save(autor);
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+				.path("/{id}").buildAndExpand(currentAutor.getId()).toUri();
+		return ResponseEntity.created(location).build();
+	}
+	
+	@PutMapping(value = {"/autor/{id}"})
+	@ApiOperation(value = "update-autor", nickname = "update-autor")
+	@ApiResponses(value = {@ApiResponse(code = 201, message = "Created"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<Void> update(@Valid @RequestBody Autor autor, @PathVariable("id") Long id) {
+		Autor currentAutor = autorService.findById(id);
+		if(currentAutor == null) {
+			throw new NotFoundException("id - " + id);
+		}
+		currentAutor.setNombre(autor.getNombre());
+		currentAutor.setLibros(autor.getLibros());
+		autorService.update(currentAutor);
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+				.path("/{id}").buildAndExpand(currentAutor.getId()).toUri();
+		return ResponseEntity.created(location).build();
+	}
+
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	@DeleteMapping(value = {"/autor/{id}"})
+	@ApiOperation(value = "delete-autor", nickname = "delete-autor")
+	@ApiResponses(value = {@ApiResponse(code = 204, message = "No Content"),
+			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
+	public void delete(@PathVariable("id") Long id) {
+		Autor autor = autorService.findById(id);
+		if(autor == null) {
+			throw new NotFoundException("id - " + id);
+		}
+		autorService.delete(id);
+	}
+}
