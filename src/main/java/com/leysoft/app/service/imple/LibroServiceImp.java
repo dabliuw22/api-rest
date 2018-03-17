@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.leysoft.app.entity.Autor;
 import com.leysoft.app.entity.Libro;
 import com.leysoft.app.repository.LibroRepository;
 import com.leysoft.app.service.inter.LibroService;
@@ -38,6 +39,11 @@ public class LibroServiceImp implements LibroService {
 	@Override
 	public List<Libro> findByTituloContainingIgnoreCase(String titulo) {
 		return libroRepository.findByTituloContainingIgnoreCase(titulo);
+	}
+	
+	@Override
+	public List<Libro> findByAutor(Autor autor) {
+		return libroRepository.findByAutor(autor);
 	}
 
 	@Override
