@@ -24,7 +24,9 @@ public class AutorResourceAssembler extends ResourceAssemblerSupport<Autor, Auto
 	public AutorResource toResource(Autor entity) {
 		AutorResource resource = new AutorResource(entity);
 		ControllerLinkBuilder linkAll = linkTo(methodOn(ApiAutorController.class).list());
+		ControllerLinkBuilder linkLibros = linkTo(methodOn(ApiAutorController.class).librosAutor(entity.getId()));
 		resource.add(linkAll.withRel("all"));
+		resource.add(linkLibros.withRel("libros"));
 		return resource;
 	}
 

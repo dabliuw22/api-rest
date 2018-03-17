@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.leysoft.app.assembler.AutorResourceAssembler;
+import com.leysoft.app.assembler.LibroResourceAssembler;
 import com.leysoft.app.entity.Autor;
 import com.leysoft.app.exception.NotFoundException;
 import com.leysoft.app.resource.AutorResource;
+import com.leysoft.app.resource.LibroResource;
 import com.leysoft.app.service.inter.AutorService;
 
 import io.swagger.annotations.Api;
@@ -38,14 +40,17 @@ public class ApiAutorController {
 	private AutorService autorService;
 	
 	@Autowired
-	private AutorResourceAssembler assembler;
+	private AutorResourceAssembler autorAssembler;
+
+	@Autowired
+	private LibroResourceAssembler libroAssembler;
 	
 	@GetMapping(value = {"/autor"})
 	@ApiOperation(value = "get-autores", nickname = "get-autores")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
 	public ResponseEntity<List<AutorResource>> list() {
-		return new ResponseEntity<List<AutorResource>>(assembler.toResources(autorService.findAll()), HttpStatus.OK);
+		return new ResponseEntity<List<AutorResource>>(autorAssembler.toResources(autorService.findAll()), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/autor/search"})
@@ -53,7 +58,7 @@ public class ApiAutorController {
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
 	public ResponseEntity<List<AutorResource>> search(@RequestParam("nombre") String nombre) {
-		return new ResponseEntity<List<AutorResource>>(assembler.toResources(autorService.findByNombreContainingIgnoreCase(nombre)), HttpStatus.OK);
+		return new ResponseEntity<List<AutorResource>>(autorAssembler.toResources(autorService.findByNombreContainingIgnoreCase(nombre)), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/autor/{id}"})
@@ -65,8 +70,21 @@ public class ApiAutorController {
 		if(autor == null) {
 			throw new NotFoundException("id - " + id);
 		}
-		AutorResource resource = assembler.toResource(autor);
+		AutorResource resource = autorAssembler.toResource(autor);
 		return new ResponseEntity<AutorResource>(resource, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = {"/autor/{id}/libro"})
+	@ApiOperation(value = "libros-autor", nickname = "libros-autor")
+	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
+			@ApiResponse(code = 500, message = "Failure")})
+	public ResponseEntity<List<LibroResource>> librosAutor(@PathVariable("id") Long id) {
+		Autor autor = autorService.findByIdJoinFetch(id);
+		if(autor == null) {
+			throw new NotFoundException("id - " + id);
+		}
+		List<LibroResource> resources = libroAssembler.toResources(autor.getLibros());
+		return new ResponseEntity<List<LibroResource>>(resources, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = {"/autor"})

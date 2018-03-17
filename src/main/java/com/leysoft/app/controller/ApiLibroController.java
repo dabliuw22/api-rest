@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.leysoft.app.assembler.LibroResourceAssembler;
 import com.leysoft.app.entity.Libro;
 import com.leysoft.app.exception.NotFoundException;
+import com.leysoft.app.resource.LibroResource;
 import com.leysoft.app.service.inter.LibroService;
 
 import io.swagger.annotations.Api;
@@ -34,33 +36,39 @@ public class ApiLibroController {
 	
 	@Autowired
 	private LibroService libroService;
+
+	@Autowired
+	private LibroResourceAssembler assembler;
 	
 	@GetMapping(value = {"/libro"})
 	@ApiOperation(value = "get-libros", nickname = "get-libros")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<List<Libro>> list() {
-		return new ResponseEntity<List<Libro>>(libroService.findAll(), HttpStatus.OK);
+	public ResponseEntity<List<LibroResource>> list() {
+		List<LibroResource> resources = assembler.toResources(libroService.findAll());
+		return new ResponseEntity<List<LibroResource>>(resources, HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/libro/search"})
 	@ApiOperation(value = "search-libros", nickname = "search-libros")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<List<Libro>> search(@RequestParam("titulo") String titulo) {
-		return new ResponseEntity<List<Libro>>(libroService.findByTituloContainingIgnoreCase(titulo), HttpStatus.OK);
+	public ResponseEntity<List<LibroResource>> search(@RequestParam("titulo") String titulo) {
+		List<LibroResource> resources = assembler.toResources(libroService.findByTituloContainingIgnoreCase(titulo));
+		return new ResponseEntity<List<LibroResource>>(resources, HttpStatus.OK);
 	}
 	
 	@GetMapping(value = {"/libro/{id}"})
 	@ApiOperation(value = "get-libro", nickname = "get-libro")
 	@ApiResponses(value = {@ApiResponse(code = 200, message = "Success"),
 			@ApiResponse(code = 404, message = "Not Found"), @ApiResponse(code = 500, message = "Failure")})
-	public ResponseEntity<Libro> detail(@PathVariable("id") Long id) {
+	public ResponseEntity<LibroResource> detail(@PathVariable("id") Long id) {
 		Libro libro = libroService.findById(id);
 		if(libro == null) {
 			throw new NotFoundException("id - " + id);
 		}
-		return new ResponseEntity<Libro>(libro, HttpStatus.OK);
+		LibroResource resource = assembler.toResource(libro);
+		return new ResponseEntity<LibroResource>(resource, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = {"/libro"})
