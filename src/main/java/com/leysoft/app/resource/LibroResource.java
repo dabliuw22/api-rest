@@ -14,13 +14,12 @@ public class LibroResource extends ResourceSupport {
 	
 	private Date fechaPublicacion;
 	
-	private AutorResource autor;
+	private String autor;
 
 	public LibroResource(Libro libro) {
 		this.titulo = libro.getTitulo();
 		this.fechaPublicacion = libro.getFechaPublicacion();
-		this.autor = new AutorResource(libro.getAutor());
-		autor.add(linkTo(methodOn(ApiAutorController.class).detail(libro.getAutor().getId())).withRel("self"));
+		this.autor = libro.getAutor().getNombre();
 	}
 
 	public String getTitulo() {
@@ -31,7 +30,7 @@ public class LibroResource extends ResourceSupport {
 		return fechaPublicacion;
 	}
 
-	public AutorResource getAutor() {
+	public String getAutor() {
 		return autor;
 	}
 }
