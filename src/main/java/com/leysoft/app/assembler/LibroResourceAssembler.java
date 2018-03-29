@@ -8,6 +8,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 
+import com.leysoft.app.controller.ApiAutorController;
 import com.leysoft.app.controller.ApiLibroController;
 import com.leysoft.app.entity.Libro;
 import com.leysoft.app.resource.LibroResource;
@@ -23,7 +24,8 @@ public class LibroResourceAssembler extends ResourceAssemblerSupport<Libro, Libr
 	public LibroResource toResource(Libro entity) {
 		LibroResource resource = new LibroResource(entity);
 		ControllerLinkBuilder linkAll = linkTo(methodOn(ApiLibroController.class).list());
-		resource.add(linkAll.withRel("all"));
+		ControllerLinkBuilder linkAutor = linkTo(methodOn(ApiAutorController.class).detail(entity.getAutor().getId()));
+		resource.add(linkAll.withRel("all"), linkAutor.withRel("autor"));
 		return resource;
 	}
 
