@@ -2,10 +2,8 @@ package com.leysoft.app.resource;
 
 import java.util.Date;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import org.springframework.hateoas.ResourceSupport;
 
-import com.leysoft.app.controller.ApiAutorController;
 import com.leysoft.app.entity.Libro;
 
 public class LibroResource extends ResourceSupport {
